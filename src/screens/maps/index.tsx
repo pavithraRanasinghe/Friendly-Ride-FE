@@ -23,24 +23,24 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
-    marginTop: 25,
     zIndex: -1,
   },
-  txtSearch: {
+  txtSearchContainer: {
+    position: 'absolute',
+    top: 10,
+    width: '100%',
+    flexDirection: 'row',
     zIndex: 1,
-    flex: 0.5,
+  },
+  txtSearch: {
+    flex: 1,
+    marginHorizontal: 10,
   },
 });
 
 const Maps = () => {
-  const [origin] = useState<LocationDetail>({
-    latitude: 6.03264,
-    longitude: 80.21677,
-  });
-  const [destination] = useState<LocationDetail>({
-    latitude: 6.035536,
-    longitude: 80.220489,
-  });
+  const [origin, setOrigin] = useState<LocationDetail>();
+  const [destination, setDestination] = useState<LocationDetail>();
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<LocationDetail>();
 
@@ -107,18 +107,49 @@ const Maps = () => {
   }
   return (
     <View style={styles.container}>
-      <View style={styles.txtSearch}>
-        <GooglePlacesAutocomplete
-          placeholder="Search"
-          onPress={(data, details = null) => {
-            // 'details' is provided when fetchDetails = true
-            console.log(data, details);
-          }}
-          query={{
-            key: GOOGLE_MAP_API_KEY,
-            language: 'en',
-          }}
-        />
+      <View style={styles.txtSearchContainer}>
+        <View style={styles.txtSearch}>
+          <GooglePlacesAutocomplete
+            fetchDetails={true}
+            placeholder="From"
+            onPress={(_, details = null) => {
+              // 'details' is provided when fetchDetails = true
+              console.log('Origin : ', details?.geometry.location);
+              const originLoc = details?.geometry.location;
+              if (originLoc && originLoc.lat && originLoc.lng) {
+                setOrigin({
+                  latitude: originLoc.lat,
+                  longitude: originLoc.lng,
+                });
+              }
+            }}
+            query={{
+              key: GOOGLE_MAP_API_KEY,
+              language: 'en',
+            }}
+          />
+        </View>
+        <View style={styles.txtSearch}>
+          <GooglePlacesAutocomplete
+            fetchDetails={true}
+            placeholder="To"
+            onPress={(_, details = null) => {
+              // 'details' is provided when fetchDetails = true
+              console.log('Desination : ', details?.geometry.location);
+              const originLoc = details?.geometry.location;
+              if (originLoc && originLoc.lat && originLoc.lng) {
+                setDestination({
+                  latitude: originLoc.lat,
+                  longitude: originLoc.lng,
+                });
+              }
+            }}
+            query={{
+              key: GOOGLE_MAP_API_KEY,
+              language: 'en',
+            }}
+          />
+        </View>
       </View>
       <MapView
         provider={PROVIDER_GOOGLE}
