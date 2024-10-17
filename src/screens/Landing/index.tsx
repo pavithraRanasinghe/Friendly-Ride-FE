@@ -4,17 +4,8 @@ import {Image, StyleSheet} from 'react-native';
 import {Text} from 'react-native-paper';
 import {theme} from '../../core/theme';
 import Button from '../../components/Button/button';
+import {useNavigation} from '@react-navigation/native';
 
-// Define the navigation prop types
-// type RootStackParamList = {
-//   LoginScreen: undefined;
-//   RegisterScreen: undefined;
-// };
-
-// type StartScreenProps = NativeStackScreenProps<
-//   RootStackParamList,
-//   'StartScreen'
-// >;
 const styles = StyleSheet.create({
   image: {
     width: 110,
@@ -35,15 +26,24 @@ const styles = StyleSheet.create({
   },
 });
 
+// type RootStackParamList = {
+//   Landing: undefined;
+//   Login: undefined;
+//   RegisterScreen: undefined;
+// };
+
+// type StartScreenProps = NativeStackScreenProps<RootStackParamList, 'Landing'>;
+
 const LandingScreen: React.FC = () => {
+  const navigation = useNavigation();
   return (
     <Background>
       <Image source={require('../../assets/logo.png')} style={styles.image} />
-      <Text style={styles.header}>Login Template</Text>
-      <Text style={styles.text}>
-        The easiest way to start with your amazing application.
-      </Text>
-      <Button mode="contained" onPress={() => console.log('LOGIN')}>
+      <Text style={styles.header}>FRIENDLY RIDE LOGIN</Text>
+      <Text style={styles.text}>Welcome back to FRIENDLY RIDE</Text>
+      <Button
+        mode="contained"
+        onPress={() => navigation.navigate('Login' as never)}>
         Login
       </Button>
       <Button mode="outlined" onPress={() => console.log('SIGN UP')}>
