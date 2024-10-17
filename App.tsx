@@ -1,8 +1,8 @@
 import React from 'react';
-import Maps from './src/screens/maps';
+import LandingScreen from './src/screens/Landing';
 
 const App = () => {
-  return <Maps />;
+  return <LandingScreen />;
 };
 
 export default App;
