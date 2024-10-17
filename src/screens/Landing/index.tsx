@@ -1,38 +1,10 @@
 import React from 'react';
 import Background from '../../components/Background/background';
-import {Image, StyleSheet} from 'react-native';
+import {Image} from 'react-native';
 import {Text} from 'react-native-paper';
-import {theme} from '../../core/theme';
 import Button from '../../components/Button/button';
 import {useNavigation} from '@react-navigation/native';
-
-const styles = StyleSheet.create({
-  image: {
-    width: 110,
-    height: 110,
-    marginBottom: 8,
-  },
-  header: {
-    fontSize: 21,
-    color: theme.colors.primary,
-    fontWeight: 'bold',
-    paddingVertical: 12,
-  },
-  text: {
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-});
-
-// type RootStackParamList = {
-//   Landing: undefined;
-//   Login: undefined;
-//   RegisterScreen: undefined;
-// };
-
-// type StartScreenProps = NativeStackScreenProps<RootStackParamList, 'Landing'>;
+import {styles} from './index.style';
 
 const LandingScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -46,7 +18,9 @@ const LandingScreen: React.FC = () => {
         onPress={() => navigation.navigate('Login' as never)}>
         Login
       </Button>
-      <Button mode="outlined" onPress={() => console.log('SIGN UP')}>
+      <Button
+        mode="outlined"
+        onPress={() => navigation.navigate('Register' as never)}>
         Sign Up
       </Button>
     </Background>
