@@ -26,7 +26,7 @@ const LoginScreen: React.FC = () => {
     console.log('Password : ', password);
     navigation.reset({
       index: 0,
-      routes: [{name: 'Dashboard' as never}],
+      routes: [{name: 'Ride' as never}],
     });
   };
 
