@@ -8,6 +8,8 @@ import Register from '../screens/Register';
 import Ride from '../screens/Ride';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {theme} from '../core/theme';
+import Translator from '../screens/Translator';
+import Home from '../screens/Home';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -15,7 +17,7 @@ const Tab = createBottomTabNavigator();
 const Navigation = () => {
   return (
     <NavigationContainer independent={true}>
-      <Stack.Navigator initialRouteName="Landing">
+      <Stack.Navigator initialRouteName="Ride">
         <Stack.Screen
           name="Landing"
           component={LandingScreen}
@@ -46,9 +48,26 @@ const Navigation = () => {
 
 const TabNavigator = () => {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator initialRouteName="Home">
       <Tab.Screen
         name="Home"
+        component={Home}
+        options={{
+          headerShown: false,
+          title: 'Home',
+          tabBarIcon: ({focused}) => (
+            <MaterialIcon
+              style={{
+                color: focused ? theme.colors.primary : theme.colors.secondary,
+              }}
+              name="home"
+              size={25}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Trip"
         component={Ride}
         options={{
           headerShown: false,
@@ -65,17 +84,34 @@ const TabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Login"
-        component={Login}
+        name="Translator"
+        component={Translator}
         options={{
           headerShown: false,
-          title: 'Login',
+          title: 'Translator',
           tabBarIcon: ({focused}) => (
             <MaterialIcon
               style={{
                 color: focused ? theme.colors.primary : theme.colors.secondary,
               }}
-              name="directions-car"
+              name="keyboard-voice"
+              size={25}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Login"
+        component={Login}
+        options={{
+          headerShown: false,
+          title: 'Logout',
+          tabBarIcon: ({focused}) => (
+            <MaterialIcon
+              style={{
+                color: focused ? theme.colors.primary : theme.colors.secondary,
+              }}
+              name="logout"
               size={25}
             />
           ),
