@@ -70,8 +70,10 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ride Details</Text>
-          <Text style={styles.detailText}>Price - LKR {rideDetails.price}</Text>
+          <View style={styles.rowSection}>
+            <Text style={styles.sectionTitle}>Ride Details</Text>
+            <Text style={styles.sectionTitle}>LKR {rideDetails.price}</Text>
+          </View>
           <Text style={styles.detailText}>Date - {rideDetails.date}</Text>
           <Text style={styles.detailText}>
             Passenger Count - {rideDetails.passengerCount}

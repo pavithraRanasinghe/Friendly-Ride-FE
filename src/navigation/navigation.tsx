@@ -10,6 +10,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {theme} from '../core/theme';
 import Translator from '../screens/Translator';
 import Home from '../screens/Home';
+import OnGoingRide from '../screens/OnGoingRide';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -39,6 +40,11 @@ const Navigation = () => {
         <Stack.Screen
           name="Ride"
           component={TabNavigator}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="OnGoingRide"
+          component={OnGoingRide}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

@@ -71,7 +71,7 @@ const Ride = () => {
       <View style={styles.container}>
         <Header>Find Your Ride</Header>
         <View style={styles.mapContainer}>
-          <Maps />
+          <Maps isAutoSelection={true} />
         </View>
         <View>
           <Button

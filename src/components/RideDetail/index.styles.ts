@@ -1,16 +1,24 @@
-import {StyleSheet} from 'react-native';
+import {Dimensions, StyleSheet} from 'react-native';
 import {theme} from '../../core/theme';
 
+const {width} = Dimensions.get('window');
+
 export const styles = StyleSheet.create({
-  modalContent: {
+  container: {
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 20,
+    margin: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginBottom: 20,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 20,
   },
   rowSection: {
@@ -52,5 +60,8 @@ export const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  rideButton: {
+    width: width * 0.9,
   },
 });

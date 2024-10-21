@@ -31,6 +31,12 @@ const Home = () => {
           Find a Ride
         </Button>
       </View>
+      <Button
+        mode="contained"
+        style={styles.rideButton}
+        onPress={() => navigation.navigate('OnGoingRide' as never)}>
+        Current Ride
+      </Button>
     </View>
   );
 };
