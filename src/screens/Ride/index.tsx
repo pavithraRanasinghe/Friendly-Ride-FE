@@ -9,6 +9,7 @@ import RideDetailsModal from '../../components/RideDetailsModal';
 
 const Ride = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isDriverListVisible, setIsDriverListVisible] = useState(false);
   const driverDetails = [
     {
       name: 'Mr. Pavithra Ransinghe',
@@ -75,21 +76,23 @@ const Ride = () => {
         <View>
           <Button
             mode="contained"
-            onPress={() => console.log('')}
+            onPress={() => setIsDriverListVisible(!isDriverListVisible)}
             style={styles.rideButton}>
-            Search Ride
+            {isDriverListVisible ? 'Reset' : 'Search Ride'}
           </Button>
         </View>
       </View>
-      <ScrollView>
-        {driverDetails.map((driver, index) => (
-          <DriverCard
-            key={index}
-            driver={driver}
-            onPress={() => setIsModalVisible(true)}
-          />
-        ))}
-      </ScrollView>
+      {isDriverListVisible && (
+        <ScrollView>
+          {driverDetails.map((driver, index) => (
+            <DriverCard
+              key={index}
+              driver={driver}
+              onPress={() => setIsModalVisible(true)}
+            />
+          ))}
+        </ScrollView>
+      )}
       <RideDetailsModal
         isVisible={isModalVisible}
         onConfirm={onConfirm}

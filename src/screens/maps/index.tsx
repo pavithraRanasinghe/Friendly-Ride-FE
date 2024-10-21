@@ -11,6 +11,7 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
 import {GOOGLE_MAP_API_KEY} from '../../config/constants';
 import MapViewDirections from 'react-native-maps-directions';
 import GetLocation from 'react-native-get-location';
+import {theme} from '../../core/theme';
 
 type LocationDetail = {
   latitude: number;
@@ -163,7 +164,7 @@ const Maps = () => {
         {origin && destination && (
           <MapViewDirections
             origin={origin}
-            strokeColor="red"
+            strokeColor={theme.colors.mapDirection}
             strokeWidth={2}
             destination={destination}
             apikey={GOOGLE_MAP_API_KEY}
