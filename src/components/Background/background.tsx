@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
-  } as ViewStyle, // Specify ViewStyle for the container style
+  } as ViewStyle,
 });
 
 export default Background;

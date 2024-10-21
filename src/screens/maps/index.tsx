@@ -42,12 +42,11 @@ const Maps = () => {
   const [origin, setOrigin] = useState<LocationDetail>();
   const [destination, setDestination] = useState<LocationDetail>();
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<LocationDetail>();
+  const [_, setCurrentLocation] = useState<LocationDetail>();
 
   useEffect(() => {
     requestLocationPermission();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -84,12 +83,11 @@ const Maps = () => {
           latitude: location.latitude,
           longitude: location.longitude,
         });
-        // Remove after
-        console.log(currentLocation);
       })
       .catch(error => {
-        const {code, message} = error;
-        console.warn(code, message);
+        console.log('ERROR : ', error);
+        // const {code, message} = error;
+        // console.warn(code, message);
       });
   };
 
