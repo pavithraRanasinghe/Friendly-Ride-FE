@@ -8,6 +8,7 @@ import TextInput from '../../components/Input/input';
 import Button from '../../components/Button/button';
 import {styles} from './index.style';
 import BackButton from '../../components/Button/backButton';
+import Toast from 'react-native-toast-message';
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -22,12 +23,15 @@ const LoginScreen: React.FC = () => {
   });
 
   const onLoginPressed = () => {
-    console.log('EMAIL : ', email);
-    console.log('Password : ', password);
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'Ride' as never}],
+    Toast.show({
+      type: 'error',
+      text1: 'Login Failed',
+      text2: 'Invalid Credentials',
     });
+    // navigation.reset({
+    //   index: 0,
+    //   routes: [{name: 'Ride' as never}],
+    // });
   };
 
   return (
@@ -66,6 +70,7 @@ const LoginScreen: React.FC = () => {
           <Text style={styles.link}>Sign up</Text>
         </TouchableOpacity>
       </View>
+      <Toast position="top" bottomOffset={20} />
     </Background>
   );
 };

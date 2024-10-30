@@ -18,7 +18,7 @@ const Tab = createBottomTabNavigator();
 const Navigation = () => {
   return (
     <NavigationContainer independent={true}>
-      <Stack.Navigator initialRouteName="Ride">
+      <Stack.Navigator initialRouteName="Landing">
         <Stack.Screen
           name="Landing"
           component={LandingScreen}
