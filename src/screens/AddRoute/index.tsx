@@ -16,7 +16,6 @@ const AddRoute = () => {
   const [endLocation, setEndLocation] = useState<any>(null);
   const [maxPassengers, setMaxPassengers] = useState('');
 
-  // Function to get the token from AsyncStorage
   const getUserID = async (): Promise<string | null> => {
     try {
       const userId = await AsyncStorage.getItem('userId');

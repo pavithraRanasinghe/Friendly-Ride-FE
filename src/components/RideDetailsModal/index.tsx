@@ -1,106 +1,164 @@
 import React from 'react';
-import {View, Text, Modal} from 'react-native';
-// import Modal from 'react-native-modal';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import {
+  View,
+  Text,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import Button from '../Button/button';
-import Header from '../Header';
-import {styles} from './index.styles';
+import {theme} from '../../core/theme';
 
-interface RideDetailsModalProps {
+interface TripDetailModalProps {
   isVisible: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  rideDetails: RideDetails;
+  tripDetails: TripDetails | null; // Can handle null in case of no trip selected
 }
 
-interface RideDetails {
-  driverName: string;
-  nic: string;
-  contact: string;
-  rating: number;
-  carName: string;
-  vehicleNumber: string;
-  color: string;
-  registration: string;
+// interface RouteDetails {
+//   driverName: string;
+//   carModel: string;
+//   color: string;
+//   maxPassengers: string;
+//   rideStart: string;
+//   rideEnd: string;
+//   date: string;
+//   startTime: string;
+//   endTime: string;
+// }
+
+interface TripDetails {
+  firstRoute: any;
+  secondRoute?: any; // Optional second route for multi-route trips
   price: string;
-  date: string;
-  passengerCount: string;
-  startLocation: string;
-  destination: string;
-  startTime: string;
-  endTime: string;
 }
 
-const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
+const TripDetailModal: React.FC<TripDetailModalProps> = ({
   isVisible,
   onClose,
   onConfirm,
-  rideDetails,
+  tripDetails,
 }) => {
+  if (!tripDetails) return null;
+
+  const renderRouteDetails = (route: any, title: string) => {
+    console.log('Route : ', route);
+    return (
+      <>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={styles.detailSection}>
+          <Text style={styles.label}>Driver:</Text>
+          <Text style={styles.value}>{route.driverName}</Text>
+        </View>
+        <View style={styles.detailSection}>
+          <Text style={styles.label}>Car:</Text>
+          <Text style={styles.value}>
+            {route.carModel} ({route.color})
+          </Text>
+        </View>
+        <View style={styles.detailSection}>
+          <Text style={styles.label}>Max Passengers:</Text>
+          <Text style={styles.value}>{route.maxPassengers}</Text>
+        </View>
+        <View style={styles.detailSection}>
+          <Text style={styles.label}>Start:</Text>
+          <Text style={styles.value}>{route.startTime}</Text>
+        </View>
+        <View style={styles.detailSection}>
+          <Text style={styles.label}>End:</Text>
+          <Text style={styles.value}>{route.expectedEndTime}</Text>
+        </View>
+        <View style={styles.detailSection}>
+          <Text style={styles.label}>Date:</Text>
+          <Text style={styles.value}>{route.date}</Text>
+        </View>
+      </>
+    );
+  };
+
   return (
-    <Modal visible={isVisible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalContent}>
-        <Header>Ride Details</Header>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Driver Details</Text>
-          <Text style={styles.detailText}>Name - {rideDetails.driverName}</Text>
-          <Text style={styles.detailText}>NIC - {rideDetails.nic}</Text>
-          <Text style={styles.detailText}>Contact - {rideDetails.contact}</Text>
-          <View style={styles.rating}>
-            <Text style={styles.detailText}>Rate - </Text>
-            <Icon name="star" size={20} color="#FFD700" />
-            <Icon name="star" size={20} color="#FFD700" />
-            <Icon name="star" size={20} color="#FFD700" />
-            <Icon name="star" size={20} color="#FFD700" />
-            <Icon name="star" size={20} color="#FFD700" />
+    <Modal visible={isVisible} animationType="slide" transparent={true}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <ScrollView>
+            <Text style={styles.title}>Trip Details</Text>
+            {renderRouteDetails(tripDetails.firstRoute, 'First Route')}
+            {tripDetails.secondRoute &&
+              renderRouteDetails(tripDetails.secondRoute, 'Second Route')}
+            <View style={styles.detailSection}>
+              <Text style={styles.label}>Total Price:</Text>
+              <Text style={styles.value}>LKR {tripDetails.price}</Text>
+            </View>
+          </ScrollView>
+          <View style={styles.actions}>
+            <Button mode="contained" onPress={onConfirm}>
+              Confirm
+            </Button>
+          </View>
+          <View>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.cancel}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Vehicle Details</Text>
-          <Text style={styles.detailText}>Name - {rideDetails.carName}</Text>
-          <Text style={styles.detailText}>
-            Vehicle Number - {rideDetails.vehicleNumber}
-          </Text>
-          <Text style={styles.detailText}>Color - {rideDetails.color}</Text>
-          <Text style={styles.detailText}>
-            Registration - {rideDetails.registration}
-          </Text>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.rowSection}>
-            <Text style={styles.sectionTitle}>Ride Details</Text>
-            <Text style={styles.sectionTitle}>LKR {rideDetails.price}</Text>
-          </View>
-          <Text style={styles.detailText}>Date - {rideDetails.date}</Text>
-          <Text style={styles.detailText}>
-            Passenger Count - {rideDetails.passengerCount}
-          </Text>
-          <Text style={styles.detailText}>
-            Start Location - {rideDetails.startLocation}
-          </Text>
-          <Text style={styles.detailText}>
-            Destination - {rideDetails.destination}
-          </Text>
-          <Text style={styles.detailText}>
-            Start Time - {rideDetails.startTime}
-          </Text>
-          <Text style={styles.detailText}>
-            End Time - {rideDetails.endTime}
-          </Text>
-        </View>
-
-        <Button mode="contained" onPress={onConfirm}>
-          Confirm Ride
-        </Button>
-        <Button mode="outlined" onPress={onClose}>
-          Close
-        </Button>
       </View>
     </Modal>
   );
 };
 
-export default RideDetailsModal;
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+    color: theme.colors.primary,
+  },
+  detailSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 8,
+  },
+  label: {
+    fontSize: 16,
+    color: theme.colors.secondary,
+  },
+  value: {
+    fontSize: 16,
+    color: theme.colors.primary,
+    fontWeight: 'bold',
+  },
+  actions: {
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  cancel: {
+    marginTop: 16,
+    fontSize: 16,
+    color: theme.colors.secondary,
+    textAlign: 'center',
+  },
+});
+
+export default TripDetailModal;

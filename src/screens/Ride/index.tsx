@@ -6,17 +6,34 @@ import Button from '../../components/Button/button';
 import Header from '../../components/Header';
 import DriverCard from '../../components/DriverCard';
 import apiClient from '../../config/ApiClient';
+import TripDetailModal from '../../components/RideDetailsModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
 // import RideDetailsModal from '../../components/RideDetailsModal';
 
 const Ride = () => {
-  const [_, setIsModalVisible] = useState(false);
+  const navigation = useNavigation();
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState<any>(null); // Store selected trip details
+
   const [isDriverListVisible, setIsDriverListVisible] = useState(false);
   const [driverList, setDriverList] = useState([]); // Store the list of rides
   const [origin, setOrigin] = useState<any>(null); // Origin location
   const [destination, setDestination] = useState<any>(null); // Destination location
 
+  const getUserID = async (): Promise<string | null> => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      console.log('UserID L ', userId);
+      return userId;
+    } catch (error) {
+      console.error('Error retrieving JWT token from AsyncStorage:', error);
+      return null;
+    }
+  };
+
   const fetchDrivers = async () => {
-    console.log('Fetching drivers...');
     if (isDriverListVisible) {
       clear();
       return;
@@ -36,9 +53,8 @@ const Ride = () => {
       const response = await apiClient.get(
         `/route/search?startLongitude=${startLongitude}&startLatitude=${startLatitude}&endLongitude=${endLongitude}&endLatitude=${endLatitude}&startTime=${startTime}`,
       );
-      console.log('Driver response : ', response);
       const data = await response.data;
-      setDriverList(data); // Update the driver list state
+      setDriverList(data);
       setIsDriverListVisible(true);
     } catch (error) {
       console.error('Error fetching drivers:', error);
@@ -50,6 +66,85 @@ const Ride = () => {
     setOrigin(null);
     setDestination(null);
     setIsDriverListVisible(false);
+  };
+
+  const handleCardPress = (ride: any) => {
+    const tripDetails = {
+      firstRoute: {
+        id: ride.firstRoute.id,
+        driverName: `${ride.firstRoute.driverResponse.firstName} ${ride.firstRoute.driverResponse.lastName}`,
+        carModel: ride.firstRoute.driverResponse.vehicle.name,
+        color: ride.firstRoute.driverResponse.vehicle.colour,
+        maxPassengers: ride.firstRoute.maxPassengers,
+        rideStart: `${ride.firstRoute.startLatitude}, ${ride.firstRoute.startLongitude}`,
+        rideEnd: `${ride.firstRoute.endLatitude}, ${ride.firstRoute.endLongitude}`,
+        date: ride.firstRoute.date,
+        startTime: ride.firstRoute.startTime,
+        endTime: ride.firstRoute.expectedEndTime,
+      },
+      secondRoute: ride.secondRoute
+        ? {
+            id: ride.secondRoute.id,
+            driverName: `${ride.secondRoute.driverResponse.firstName} ${ride.secondRoute.driverResponse.lastName}`,
+            carModel: ride.secondRoute.driverResponse.vehicle.name,
+            color: ride.secondRoute.driverResponse.vehicle.colour,
+            maxPassengers: ride.secondRoute.maxPassengers,
+            rideStart: `${ride.secondRoute.startLatitude}, ${ride.secondRoute.startLongitude}`,
+            rideEnd: `${ride.secondRoute.endLatitude}, ${ride.secondRoute.endLongitude}`,
+            date: ride.secondRoute.date,
+            startTime: ride.secondRoute.startTime,
+            endTime: ride.secondRoute.expectedEndTime,
+          }
+        : null,
+      price: ride.price,
+    };
+
+    setSelectedTrip(tripDetails);
+    setIsModalVisible(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!selectedTrip) {
+      console.error('No trip selected');
+      return;
+    }
+
+    const passengerId = await getUserID();
+    const routeIds = [];
+    console.log('Selected Trip:', selectedTrip);
+    if (selectedTrip.firstRoute) {
+      routeIds.push(selectedTrip.firstRoute.id);
+    }
+
+    if (selectedTrip.secondRoute) {
+      routeIds.push(selectedTrip.secondRoute.id);
+    }
+
+    const payload = {
+      passengerId,
+      routeIds,
+    };
+
+    try {
+      const response = await apiClient.put('/route', payload);
+
+      if (response.status === 200) {
+        Alert.alert('Success', 'Trip booked successfully');
+        setIsModalVisible(false);
+        setSelectedTrip(null);
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Ride' as never}],
+        });
+      } else {
+        console.error('Failed to book trip', response);
+        Alert.alert('Error', 'Failed to book the trip');
+      }
+    } catch (error) {
+      console.error('Error booking trip:', error);
+      Alert.alert('Error', 'Something went wrong while booking the trip');
+    }
   };
 
   return (
@@ -75,7 +170,7 @@ const Ride = () => {
       {isDriverListVisible && (
         <ScrollView>
           {driverList.map((ride: any, index) => {
-            const {firstRoute, secondRoute} = ride;
+            const {firstRoute, secondRoute, price} = ride;
             // Single-driver card (no second route)
             if (!secondRoute) {
               return (
@@ -84,18 +179,18 @@ const Ride = () => {
                   driver={{
                     name: `${firstRoute.driverResponse.firstName} ${firstRoute.driverResponse.lastName}`,
                     rating: 5,
-                    carModel: `${firstRoute.driverResponse.contact}`,
-                    color: `${firstRoute.driverResponse.contact}`,
-                    maxPassengers: 'Varies',
+                    carModel: firstRoute.driverResponse.vehicle.name,
+                    color: firstRoute.driverResponse.contact,
+                    maxPassengers: firstRoute.maxPassengers,
                     rideStart: `${firstRoute.startLatitude}, ${firstRoute.startLongitude}`,
                     rideEnd: `${firstRoute.endLatitude}, ${firstRoute.endLongitude}`,
-                    date: 'Varies',
+                    date: firstRoute.date,
                     startTime: firstRoute.startTime,
                     endTime: firstRoute.expectedEndTime,
                     carImage: '',
-                    price: 'Price',
+                    price: price,
                   }}
-                  onPress={() => setIsModalVisible(true)}
+                  onPress={() => handleCardPress(ride)}
                 />
               );
             }
@@ -106,30 +201,30 @@ const Ride = () => {
                 key={index}
                 driver={{
                   name: `${firstRoute.driverResponse.firstName} & ${secondRoute.driverResponse.firstName}`,
-                  rating: 5, // Placeholder, replace with actual data if available
-                  carModel: 'Multiple Vehicles',
-                  color: 'Varies',
-                  maxPassengers: 'Varies',
+                  rating: 5,
+                  carModel: `${firstRoute.driverResponse.vehicle.name} & ${secondRoute.driverResponse.vehicle.name}`,
+                  color: `${firstRoute.driverResponse.vehicle.colour} & ${secondRoute.driverResponse.vehicle.colour}`,
+                  maxPassengers: `${firstRoute.maxPassengers} & ${secondRoute.maxPassengers}`,
                   rideStart: `${firstRoute.startLatitude}, ${firstRoute.startLongitude}`,
                   rideEnd: `${secondRoute.endLatitude}, ${secondRoute.endLongitude}`,
-                  date: 'Varies', // Update with actual date if available
+                  date: firstRoute.date,
                   startTime: firstRoute.startTime,
                   endTime: secondRoute.expectedEndTime,
-                  carImage: '', // Placeholder, replace with actual car image if available
-                  price: 'Combined Price', // Replace with calculated price
+                  carImage: '',
+                  price: price,
                 }}
-                onPress={() => setIsModalVisible(true)}
+                onPress={() => handleCardPress(ride)}
               />
             );
           })}
         </ScrollView>
       )}
-      {/* <RideDetailsModal
+      <TripDetailModal
         isVisible={isModalVisible}
-        onConfirm={onConfirm}
         onClose={() => setIsModalVisible(false)}
-        rideDetails={{}} // Pass ride details dynamically
-      /> */}
+        onConfirm={handleConfirm}
+        tripDetails={selectedTrip!}
+      />
     </View>
   );
 };
