@@ -1,3 +1,4 @@
+import React, {useEffect, useState} from 'react';
 import {
   View,
   StyleSheet,
@@ -5,7 +6,6 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import {GOOGLE_MAP_API_KEY} from '../../config/constants';
@@ -41,17 +41,23 @@ const styles = StyleSheet.create({
 
 interface MapProps {
   isAutoSelection: boolean;
+  setOrigin: (location: LocationDetail) => void; // Callback to update origin
+  setDestination: (location: LocationDetail) => void; // Callback to update destination
 }
 
-const Maps: React.FC<MapProps> = ({isAutoSelection}) => {
-  const [origin, setOrigin] = useState<LocationDetail>();
-  const [destination, setDestination] = useState<LocationDetail>();
+const Maps: React.FC<MapProps> = ({
+  isAutoSelection,
+  setOrigin,
+  setDestination,
+}) => {
+  const [origin, localSetOrigin] = useState<LocationDetail>();
+  const [destination, localSetDestination] = useState<LocationDetail>();
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const [_, setCurrentLocation] = useState<LocationDetail>();
 
   useEffect(() => {
     requestLocationPermission();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -84,30 +90,28 @@ const Maps: React.FC<MapProps> = ({isAutoSelection}) => {
       timeout: 60000,
     })
       .then(location => {
-        setCurrentLocation({
+        localSetOrigin({
+          latitude: location.latitude,
+          longitude: location.longitude,
+        });
+        setOrigin({
           latitude: location.latitude,
           longitude: location.longitude,
         });
       })
       .catch(error => {
-        console.log('ERROR : ', error);
-        // const {code, message} = error;
-        // console.warn(code, message);
+        console.error('Error fetching current location:', error);
       });
   };
 
-  // use draggable marker for select the location
-  // use Circle for display search radius
-
-  // TODO
-  // Move GooglePlacesAutocomplete to front
   if (!permissionGranted) {
     return (
       <View>
-        <Text>You have not location permission</Text>
+        <Text>You have not granted location permission</Text>
       </View>
     );
   }
+
   return (
     <View style={styles.container}>
       {isAutoSelection && (
@@ -117,14 +121,14 @@ const Maps: React.FC<MapProps> = ({isAutoSelection}) => {
               fetchDetails={true}
               placeholder="From"
               onPress={(_, details = null) => {
-                // 'details' is provided when fetchDetails = true
-                console.log('Origin : ', details?.geometry.location);
                 const originLoc = details?.geometry.location;
                 if (originLoc && originLoc.lat && originLoc.lng) {
-                  setOrigin({
+                  const newOrigin = {
                     latitude: originLoc.lat,
                     longitude: originLoc.lng,
-                  });
+                  };
+                  localSetOrigin(newOrigin);
+                  setOrigin(newOrigin); // Update parent state
                 }
               }}
               query={{
@@ -138,14 +142,14 @@ const Maps: React.FC<MapProps> = ({isAutoSelection}) => {
               fetchDetails={true}
               placeholder="To"
               onPress={(_, details = null) => {
-                // 'details' is provided when fetchDetails = true
-                console.log('Desination : ', details?.geometry.location);
-                const originLoc = details?.geometry.location;
-                if (originLoc && originLoc.lat && originLoc.lng) {
-                  setDestination({
-                    latitude: originLoc.lat,
-                    longitude: originLoc.lng,
-                  });
+                const destLoc = details?.geometry.location;
+                if (destLoc && destLoc.lat && destLoc.lng) {
+                  const newDestination = {
+                    latitude: destLoc.lat,
+                    longitude: destLoc.lng,
+                  };
+                  localSetDestination(newDestination);
+                  setDestination(newDestination); // Update parent state
                 }
               }}
               query={{
@@ -161,8 +165,8 @@ const Maps: React.FC<MapProps> = ({isAutoSelection}) => {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         region={{
-          latitude: 6.0329,
-          longitude: 80.2168,
+          latitude: origin?.latitude || 6.0329,
+          longitude: origin?.longitude || 80.2168,
           latitudeDelta: 0.00922,
           longitudeDelta: 0.00421,
         }}>
@@ -171,9 +175,9 @@ const Maps: React.FC<MapProps> = ({isAutoSelection}) => {
         {origin && destination && (
           <MapViewDirections
             origin={origin}
+            destination={destination}
             strokeColor={theme.colors.mapDirection}
             strokeWidth={2}
-            destination={destination}
             apikey={GOOGLE_MAP_API_KEY}
           />
         )}

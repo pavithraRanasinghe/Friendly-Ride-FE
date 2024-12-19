@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {TouchableOpacity, View, Image} from 'react-native';
 import {Text} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
@@ -9,7 +9,12 @@ import Button from '../../components/Button/button';
 import {styles} from './index.style';
 import BackButton from '../../components/Button/backButton';
 import Toast from 'react-native-toast-message';
-import {saveToken} from '../../config/TokenManger'; // Token storage helper
+import {
+  clearToken,
+  clearUserDetail,
+  saveToken,
+  saveUserDetial,
+} from '../../config/TokenManger'; // Token storage helper
 import apiClient from '../../config/ApiClient';
 
 const LoginScreen: React.FC = () => {
@@ -41,17 +46,25 @@ const LoginScreen: React.FC = () => {
         username: email.value,
         password: password.value,
       });
-      console.log('Login response:', response);
-      const {token} = response.data;
+
+      const {id, token, userType} = response.data;
       await saveToken(token);
+      await saveUserDetial(id);
       Toast.show({
         type: 'success',
         text1: 'Login Successful',
       });
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'Ride' as never}], // Navigate to the Ride screen
-      });
+      if (userType === 'DRIVER') {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'AddRoute' as never}], // Navigate to AddRoute
+        });
+      } else if (userType === 'PASSENGER') {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Ride' as never}], // Navigate to Home
+        });
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       Toast.show({
@@ -63,6 +76,11 @@ const LoginScreen: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    clearToken();
+    clearUserDetail();
+  }, []);
 
   return (
     <Background>
@@ -96,7 +114,13 @@ const LoginScreen: React.FC = () => {
       </Button>
       <View style={styles.row}>
         <Text>Don’t have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.reset('Landing' as never)}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'Register' as never}],
+            })
+          }>
           <Text style={styles.link}>Sign up</Text>
         </TouchableOpacity>
       </View>

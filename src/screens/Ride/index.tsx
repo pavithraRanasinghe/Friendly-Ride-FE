@@ -1,69 +1,55 @@
 import React, {useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {ScrollView, View, Alert} from 'react-native';
 import Maps from '../Maps';
 import {styles} from './index.style';
 import Button from '../../components/Button/button';
 import Header from '../../components/Header';
 import DriverCard from '../../components/DriverCard';
-import RideDetailsModal from '../../components/RideDetailsModal';
+import apiClient from '../../config/ApiClient';
+// import RideDetailsModal from '../../components/RideDetailsModal';
 
 const Ride = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [_, setIsModalVisible] = useState(false);
   const [isDriverListVisible, setIsDriverListVisible] = useState(false);
-  const driverDetails = [
-    {
-      name: 'Mr. Pavithra Ransinghe',
-      rating: 5,
-      carModel: 'Honda Civic ES1',
-      color: 'Red',
-      maxPassengers: '2/4',
-      rideStart: 'Galle',
-      rideEnd: 'Colombo',
-      date: '2024-12-21',
-      startTime: '12:00 PM',
-      endTime: '4:00 PM',
-      carImage:
-        'https://marketplace.canva.com/EAFzmMYZgLE/1/0/1600w/canva-yellow-and-black-illustrative-automotive-luxury-car-logo-XjE5WZ2IyjU.jpg',
-      price: '5682.12',
-    },
-    {
-      name: 'Mr. Pavithra Ransinghe',
-      rating: 5,
-      carModel: 'Honda Civic ES1',
-      color: 'Red',
-      maxPassengers: '2/4',
-      rideStart: 'Galle',
-      rideEnd: 'Colombo',
-      date: '2024-12-21',
-      startTime: '12:00 PM',
-      endTime: '4:00 PM',
-      carImage:
-        'https://marketplace.canva.com/EAFzmMYZgLE/1/0/1600w/canva-yellow-and-black-illustrative-automotive-luxury-car-logo-XjE5WZ2IyjU.jpg',
-      price: '5682.12',
-    },
-    // Add more driver objects as needed
-  ];
+  const [driverList, setDriverList] = useState([]); // Store the list of rides
+  const [origin, setOrigin] = useState<any>(null); // Origin location
+  const [destination, setDestination] = useState<any>(null); // Destination location
 
-  const rideDetails = {
-    driverName: 'Pavithra Ransinghe',
-    nic: '1923890412',
-    contact: '0771234567',
-    rating: 5,
-    carName: 'Honda Civic Es',
-    vehicleNumber: 'CAA - 1821',
-    color: 'RED',
-    registration: 'Valid',
-    price: '1500.00',
-    date: '2024-12-30',
-    passengerCount: '2/4',
-    startLocation: 'Galle',
-    destination: 'Colombo',
-    startTime: '06:00 PM',
-    endTime: '11:00 PM',
+  const fetchDrivers = async () => {
+    console.log('Fetching drivers...');
+    if (isDriverListVisible) {
+      clear();
+      return;
+    }
+    if (!origin || !destination) {
+      Alert.alert('Error', 'Please select origin and destination');
+      return;
+    }
+
+    const startLatitude = origin.latitude;
+    const startLongitude = origin.longitude;
+    const endLatitude = destination.latitude;
+    const endLongitude = destination.longitude;
+    const startTime = '05:30:00'; // Example, replace with user input or current time
+
+    try {
+      const response = await apiClient.get(
+        `/route/search?startLongitude=${startLongitude}&startLatitude=${startLatitude}&endLongitude=${endLongitude}&endLatitude=${endLatitude}&startTime=${startTime}`,
+      );
+      console.log('Driver response : ', response);
+      const data = await response.data;
+      setDriverList(data); // Update the driver list state
+      setIsDriverListVisible(true);
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+    }
   };
 
-  const onConfirm = () => {
-    setIsModalVisible(false);
+  const clear = () => {
+    setDriverList([]);
+    setOrigin(null);
+    setDestination(null);
+    setIsDriverListVisible(false);
   };
 
   return (
@@ -71,12 +57,16 @@ const Ride = () => {
       <View style={styles.container}>
         <Header>Find Your Ride</Header>
         <View style={styles.mapContainer}>
-          <Maps isAutoSelection={true} />
+          <Maps
+            isAutoSelection={true}
+            setOrigin={setOrigin}
+            setDestination={setDestination}
+          />
         </View>
         <View>
           <Button
             mode="contained"
-            onPress={() => setIsDriverListVisible(!isDriverListVisible)}
+            onPress={fetchDrivers} // Fetch drivers when Search Ride button is pressed
             style={styles.rideButton}>
             {isDriverListVisible ? 'Reset' : 'Search Ride'}
           </Button>
@@ -84,21 +74,62 @@ const Ride = () => {
       </View>
       {isDriverListVisible && (
         <ScrollView>
-          {driverDetails.map((driver, index) => (
-            <DriverCard
-              key={index}
-              driver={driver}
-              onPress={() => setIsModalVisible(true)}
-            />
-          ))}
+          {driverList.map((ride: any, index) => {
+            const {firstRoute, secondRoute} = ride;
+            // Single-driver card (no second route)
+            if (!secondRoute) {
+              return (
+                <DriverCard
+                  key={index}
+                  driver={{
+                    name: `${firstRoute.driverResponse.firstName} ${firstRoute.driverResponse.lastName}`,
+                    rating: 5,
+                    carModel: `${firstRoute.driverResponse.contact}`,
+                    color: `${firstRoute.driverResponse.contact}`,
+                    maxPassengers: 'Varies',
+                    rideStart: `${firstRoute.startLatitude}, ${firstRoute.startLongitude}`,
+                    rideEnd: `${firstRoute.endLatitude}, ${firstRoute.endLongitude}`,
+                    date: 'Varies',
+                    startTime: firstRoute.startTime,
+                    endTime: firstRoute.expectedEndTime,
+                    carImage: '',
+                    price: 'Price',
+                  }}
+                  onPress={() => setIsModalVisible(true)}
+                />
+              );
+            }
+
+            // Multi-driver card (both routes available)
+            return (
+              <DriverCard
+                key={index}
+                driver={{
+                  name: `${firstRoute.driverResponse.firstName} & ${secondRoute.driverResponse.firstName}`,
+                  rating: 5, // Placeholder, replace with actual data if available
+                  carModel: 'Multiple Vehicles',
+                  color: 'Varies',
+                  maxPassengers: 'Varies',
+                  rideStart: `${firstRoute.startLatitude}, ${firstRoute.startLongitude}`,
+                  rideEnd: `${secondRoute.endLatitude}, ${secondRoute.endLongitude}`,
+                  date: 'Varies', // Update with actual date if available
+                  startTime: firstRoute.startTime,
+                  endTime: secondRoute.expectedEndTime,
+                  carImage: '', // Placeholder, replace with actual car image if available
+                  price: 'Combined Price', // Replace with calculated price
+                }}
+                onPress={() => setIsModalVisible(true)}
+              />
+            );
+          })}
         </ScrollView>
       )}
-      <RideDetailsModal
+      {/* <RideDetailsModal
         isVisible={isModalVisible}
         onConfirm={onConfirm}
         onClose={() => setIsModalVisible(false)}
-        rideDetails={rideDetails}
-      />
+        rideDetails={{}} // Pass ride details dynamically
+      /> */}
     </View>
   );
 };

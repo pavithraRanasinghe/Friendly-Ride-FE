@@ -11,6 +11,8 @@ import {theme} from '../core/theme';
 import Translator from '../screens/Translator';
 import Home from '../screens/Home';
 import OnGoingRide from '../screens/OnGoingRide';
+import AddRoute from '../screens/AddRoute';
+import VehicleRegistration from '../screens/Vehicle';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -45,6 +47,16 @@ const Navigation = () => {
         <Stack.Screen
           name="OnGoingRide"
           component={OnGoingRide}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="AddRoute"
+          component={AddRoute}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Vehicle"
+          component={VehicleRegistration}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
