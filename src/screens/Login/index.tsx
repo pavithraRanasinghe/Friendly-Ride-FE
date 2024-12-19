@@ -9,6 +9,8 @@ import Button from '../../components/Button/button';
 import {styles} from './index.style';
 import BackButton from '../../components/Button/backButton';
 import Toast from 'react-native-toast-message';
+import {saveToken} from '../../config/TokenManger'; // Token storage helper
+import apiClient from '../../config/ApiClient';
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -21,17 +23,45 @@ const LoginScreen: React.FC = () => {
     value: '',
     error: '',
   });
+  const [loading, setLoading] = useState(false);
 
-  const onLoginPressed = () => {
-    Toast.show({
-      type: 'error',
-      text1: 'Login Failed',
-      text2: 'Invalid Credentials',
-    });
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [{name: 'Ride' as never}],
-    // });
+  const onLoginPressed = async () => {
+    if (email.value.trim() === '') {
+      setEmail({value: email.value, error: 'Email is required'});
+      return;
+    }
+    if (password.value.trim() === '') {
+      setPassword({value: password.value, error: 'Password is required'});
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await apiClient.post('/app-user/login', {
+        username: email.value,
+        password: password.value,
+      });
+      console.log('Login response:', response);
+      const {token} = response.data;
+      await saveToken(token);
+      Toast.show({
+        type: 'success',
+        text1: 'Login Successful',
+      });
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Ride' as never}], // Navigate to the Ride screen
+      });
+    } catch (error: any) {
+      console.error('Login error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Login Failed',
+        text2: error.response?.data?.message || 'Something went wrong',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,7 +91,7 @@ const LoginScreen: React.FC = () => {
           <Text style={styles.forgot}>Forgot your password?</Text>
         </TouchableOpacity>
       </View>
-      <Button mode="contained" onPress={onLoginPressed}>
+      <Button mode="contained" onPress={onLoginPressed} loading={loading}>
         Login
       </Button>
       <View style={styles.row}>
