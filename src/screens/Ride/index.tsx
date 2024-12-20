@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ScrollView, View, Alert} from 'react-native';
 import Maps from '../Maps';
 import {styles} from './index.style';
@@ -21,6 +21,7 @@ const Ride = () => {
   const [driverList, setDriverList] = useState([]); // Store the list of rides
   const [origin, setOrigin] = useState<any>(null); // Origin location
   const [destination, setDestination] = useState<any>(null); // Destination location
+  const [clearMapTrigger, setClearMapTrigger] = useState(false);
 
   const getUserID = async (): Promise<string | null> => {
     try {
@@ -61,11 +62,20 @@ const Ride = () => {
     }
   };
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      clear();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const clear = () => {
     setDriverList([]);
     setOrigin(null);
     setDestination(null);
     setIsDriverListVisible(false);
+    setClearMapTrigger(prev => !prev);
   };
 
   const handleCardPress = (ride: any) => {
@@ -156,6 +166,7 @@ const Ride = () => {
             isAutoSelection={true}
             setOrigin={setOrigin}
             setDestination={setDestination}
+            clearTrigger={clearMapTrigger}
           />
         </View>
         <View>

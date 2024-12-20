@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   StyleSheet,
@@ -49,6 +49,7 @@ interface MapProps {
   setOrigin?: (location: LocationDetail) => void;
   setDestination?: (location: LocationDetail) => void;
   markers?: MarkerDetail[];
+  clearTrigger?: boolean;
 }
 
 const Maps: React.FC<MapProps> = ({
@@ -56,15 +57,25 @@ const Maps: React.FC<MapProps> = ({
   setOrigin,
   setDestination,
   markers,
+  clearTrigger = false,
 }) => {
   const [origin, localSetOrigin] = useState<LocationDetail>();
   const [destination, localSetDestination] = useState<LocationDetail>();
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const originInputRef = useRef<any>(null);
+  const destinationInputRef = useRef<any>(null);
 
   useEffect(() => {
     requestLocationPermission();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    console.log('Clear trigger:', clearTrigger);
+    if (clearTrigger) {
+      clearMap();
+    }
+  }, [clearTrigger]);
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -113,6 +124,18 @@ const Maps: React.FC<MapProps> = ({
       });
   };
 
+  // Clear map details
+  const clearMap = () => {
+    localSetOrigin(undefined); // Clear origin
+    localSetDestination(undefined); // Clear destination
+    if (originInputRef.current) {
+      originInputRef.current.clear();
+    }
+    if (destinationInputRef.current) {
+      destinationInputRef.current.clear();
+    }
+  };
+
   if (!permissionGranted) {
     return (
       <View>
@@ -136,6 +159,7 @@ const Maps: React.FC<MapProps> = ({
         <View style={styles.txtSearchContainer}>
           <View style={styles.txtSearch}>
             <GooglePlacesAutocomplete
+              ref={originInputRef}
               fetchDetails={true}
               placeholder="From"
               onPress={(_, details = null) => {
@@ -159,6 +183,7 @@ const Maps: React.FC<MapProps> = ({
           </View>
           <View style={styles.txtSearch}>
             <GooglePlacesAutocomplete
+              ref={destinationInputRef}
               fetchDetails={true}
               placeholder="To"
               onPress={(_, details = null) => {
@@ -187,13 +212,8 @@ const Maps: React.FC<MapProps> = ({
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         region={{
-          // latitude: origin?.latitude || markers?.[0]?.start.latitude || 6.9271,
-          // longitude:
-          //   origin?.longitude || markers?.[0]?.start.longitude || 79.8612,
-          // latitudeDelta: 0.1,
-          // longitudeDelta: 0.1,
-          latitude: origin?.latitude || 6.0329,
-          longitude: origin?.longitude || 80.2168,
+          latitude: origin?.latitude || 6.9271,
+          longitude: origin?.longitude || 79.8612,
           latitudeDelta: 0.00922,
           longitudeDelta: 0.00421,
         }}>

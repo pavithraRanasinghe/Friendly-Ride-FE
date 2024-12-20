@@ -41,10 +41,11 @@ const TripDetailModal: React.FC<TripDetailModalProps> = ({
   onConfirm,
   tripDetails,
 }) => {
-  if (!tripDetails) return null;
+  if (!tripDetails) {
+    return null;
+  }
 
   const renderRouteDetails = (route: any, title: string) => {
-    console.log('Route : ', route);
     return (
       <>
         <Text style={styles.sectionTitle}>{title}</Text>

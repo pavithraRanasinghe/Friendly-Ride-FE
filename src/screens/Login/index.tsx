@@ -85,7 +85,10 @@ const LoginScreen: React.FC = () => {
   return (
     <Background>
       <BackButton />
-      <Image source={require('../../assets/logo.png')} style={styles.image} />
+      <Image
+        source={require('../../assets/fr-logo.jpg')}
+        style={styles.image}
+      />
       <Header>Welcome back.</Header>
       <TextInput
         label="Email"

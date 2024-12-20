@@ -1,11 +1,22 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Button, Alert, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Maps from '../Maps'; // Assuming you already have a Maps component for location selection
 import apiClient from '../../config/ApiClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Image} from 'react-native-elements';
+import {useNavigation} from '@react-navigation/native';
 
 const AddRoute = () => {
+  const navigation = useNavigation();
   const [startDate, setStartDate] = useState(new Date());
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [startTime, setStartTime] = useState(new Date());
@@ -28,6 +39,9 @@ const AddRoute = () => {
   };
 
   const handleSubmit = async () => {
+    const now = new Date();
+
+    // Validate fields are filled
     if (
       !startDate ||
       !startTime ||
@@ -39,8 +53,34 @@ const AddRoute = () => {
       Alert.alert('Error', 'Please fill out all fields');
       return;
     }
+
+    // Validate start date is not in the past
+    if (startDate < new Date(now.toDateString())) {
+      Alert.alert('Error', 'Start date cannot be in the past');
+      return;
+    }
+
+    // Validate start time is not in the past for today
+    if (startDate.toDateString() === now.toDateString() && startTime < now) {
+      Alert.alert('Error', 'Start time cannot be in the past');
+      return;
+    }
+
+    // Validate end time is after start time
+    if (endTime <= startTime) {
+      Alert.alert('Error', 'End time must be after start time');
+      return;
+    }
+
+    // Validate max passengers is a positive integer
+    const parsedPassengers = parseInt(maxPassengers, 10);
+    if (isNaN(parsedPassengers) || parsedPassengers <= 0) {
+      Alert.alert('Error', 'Max passengers must be a positive number');
+      return;
+    }
+
     const userId = await getUserID();
-    console.log('SAVE ', userId);
+
     const payload = {
       startDate: startDate.toISOString().split('T')[0],
       startTime: startTime.toISOString().split('T')[1].split('.')[0],
@@ -49,13 +89,13 @@ const AddRoute = () => {
       startLongitude: startLocation.longitude,
       endLatitude: endLocation.latitude,
       endLongitude: endLocation.longitude,
-      maxPassengers: parseInt(maxPassengers, 10),
+      maxPassengers: parsedPassengers,
       driverId: parseInt(userId!, 10),
     };
-    console.log('Payload : ', payload);
+
     try {
       const response = await apiClient.post('/route', payload);
-      console.log('Route Save  : ', response.data);
+
       if (response.data) {
         Alert.alert('Success', 'Route added successfully');
       } else {
@@ -70,6 +110,19 @@ const AddRoute = () => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Landing' as never}],
+          })
+        }
+        style={styles.backContainer}>
+        <Image
+          style={styles.image}
+          source={require('../../assets/arrow_back.png')}
+        />
+      </TouchableOpacity>
       <Text style={styles.title}>Add Route</Text>
 
       {/* Date Picker */}
@@ -85,6 +138,7 @@ const AddRoute = () => {
             value={startDate}
             mode="date"
             display="default"
+            minimumDate={new Date()}
             onChange={(event, date) => {
               setShowStartDatePicker(false);
               if (date) {
@@ -108,6 +162,11 @@ const AddRoute = () => {
             value={startTime}
             mode="time"
             display="default"
+            minimumDate={
+              startDate.toDateString() === new Date().toDateString()
+                ? new Date() // Disable past times for today
+                : undefined
+            }
             onChange={(event, time) => {
               setShowStartTimePicker(false);
               if (time) {
@@ -130,6 +189,7 @@ const AddRoute = () => {
             value={endTime}
             mode="time"
             display="default"
+            minimumDate={startTime}
             onChange={(event, time) => {
               setShowEndTimePicker(false);
               if (time) {
@@ -197,6 +257,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#6854a4',
     marginVertical: 10,
     paddingVertical: 2,
+  },
+  backContainer: {
+    position: 'absolute',
+    top: 10,
+    left: 0,
+  },
+  image: {
+    width: 24,
+    height: 24,
   },
 });
 

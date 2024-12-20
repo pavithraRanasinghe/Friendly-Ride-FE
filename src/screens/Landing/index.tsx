@@ -10,7 +10,10 @@ const LandingScreen: React.FC = () => {
   const navigation = useNavigation();
   return (
     <Background>
-      <Image source={require('../../assets/logo.png')} style={styles.image} />
+      <Image
+        source={require('../../assets/fr-logo.jpg')}
+        style={styles.image}
+      />
       <Text style={styles.header}>FRIENDLY RIDE LOGIN</Text>
       <Text style={styles.text}>Welcome back to FRIENDLY RIDE</Text>
       <Button
