@@ -18,6 +18,11 @@ type LocationDetail = {
   longitude: number;
 };
 
+type MarkerDetail = {
+  start: LocationDetail;
+  end: LocationDetail;
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -41,14 +46,16 @@ const styles = StyleSheet.create({
 
 interface MapProps {
   isAutoSelection: boolean;
-  setOrigin: (location: LocationDetail) => void; // Callback to update origin
-  setDestination: (location: LocationDetail) => void; // Callback to update destination
+  setOrigin?: (location: LocationDetail) => void;
+  setDestination?: (location: LocationDetail) => void;
+  markers?: MarkerDetail[];
 }
 
 const Maps: React.FC<MapProps> = ({
   isAutoSelection,
   setOrigin,
   setDestination,
+  markers,
 }) => {
   const [origin, localSetOrigin] = useState<LocationDetail>();
   const [destination, localSetDestination] = useState<LocationDetail>();
@@ -94,10 +101,12 @@ const Maps: React.FC<MapProps> = ({
           latitude: location.latitude,
           longitude: location.longitude,
         });
-        setOrigin({
-          latitude: location.latitude,
-          longitude: location.longitude,
-        });
+        if (setOrigin) {
+          setOrigin({
+            latitude: location.latitude,
+            longitude: location.longitude,
+          });
+        }
       })
       .catch(error => {
         console.error('Error fetching current location:', error);
@@ -111,6 +120,15 @@ const Maps: React.FC<MapProps> = ({
       </View>
     );
   }
+
+  const validateCoordinates = (lat: number, long: number) => {
+    // Ensure latitude is between -90 and +90
+    if (lat < -90 || lat > 90) {
+      console.warn(`Swapping coordinates: (${lat}, ${long})`);
+      return {latitude: long, longitude: lat}; // Swap
+    }
+    return {latitude: lat, longitude: long};
+  };
 
   return (
     <View style={styles.container}>
@@ -128,7 +146,9 @@ const Maps: React.FC<MapProps> = ({
                     longitude: originLoc.lng,
                   };
                   localSetOrigin(newOrigin);
-                  setOrigin(newOrigin); // Update parent state
+                  if (setOrigin) {
+                    setOrigin(newOrigin); // Update parent state
+                  }
                 }
               }}
               query={{
@@ -149,7 +169,9 @@ const Maps: React.FC<MapProps> = ({
                     longitude: destLoc.lng,
                   };
                   localSetDestination(newDestination);
-                  setDestination(newDestination); // Update parent state
+                  if (setDestination) {
+                    setDestination(newDestination); // Update parent state
+                  }
                 }
               }}
               query={{
@@ -165,6 +187,11 @@ const Maps: React.FC<MapProps> = ({
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         region={{
+          // latitude: origin?.latitude || markers?.[0]?.start.latitude || 6.9271,
+          // longitude:
+          //   origin?.longitude || markers?.[0]?.start.longitude || 79.8612,
+          // latitudeDelta: 0.1,
+          // longitudeDelta: 0.1,
           latitude: origin?.latitude || 6.0329,
           longitude: origin?.longitude || 80.2168,
           latitudeDelta: 0.00922,
@@ -181,6 +208,24 @@ const Maps: React.FC<MapProps> = ({
             apikey={GOOGLE_MAP_API_KEY}
           />
         )}
+        {markers &&
+          markers.map((marker, index) => {
+            const start = validateCoordinates(
+              marker.start.latitude,
+              marker.start.longitude,
+            );
+            const end = validateCoordinates(
+              marker.end.latitude,
+              marker.end.longitude,
+            );
+
+            return (
+              <React.Fragment key={index}>
+                <Marker coordinate={start} title="Start" pinColor="green" />
+                <Marker coordinate={end} title="End" pinColor="red" />
+              </React.Fragment>
+            );
+          })}
       </MapView>
     </View>
   );
